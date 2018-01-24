@@ -46,7 +46,7 @@
 
       // Add data listener
       c.on('data', function (data) {
-        $('.messages').append('<div><span class="peer">' + c.peer + '</span>: ' + data + '</div>');
+        $('#messages').append('<div><span class="peer">' + c.peer + '</span>: ' + data + '</div>');
       });
 
       // Show alert when closed
@@ -61,7 +61,9 @@
         var requestedPeer = $(this).text();
 
         // Close the old connection
-        connection.close();
+        if (connection) {
+          connection.close();
+        }
 
         // Create a new connection
         connection = peer.connect(requestedPeer, {
@@ -80,7 +82,7 @@
 
 
       // Send a chat message to all active connections.
-      $('#send').submit(function (e) {
+      $('#send').click(function (e) {
         e.preventDefault();
 
         // Get the message
@@ -90,7 +92,7 @@
         connection.send(msg);
 
         // Show in the UI with title 'You'
-        $('.message').append('<div><span class="you">You: </span>' + msg + '</div>');
+        $('#messages').append('<div><span class="you">You: </span>' + msg + '</div>');
 
         // Reset and focus on the input box
         $('#text').val('');
