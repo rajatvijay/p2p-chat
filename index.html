@@ -1,0 +1,134 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+  <title>P2P Chat</title>
+
+  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8/jquery.min.js"></script>
+  <script type="text/javascript" src="./peer.js"></script>
+  <script>
+
+    var userName = 'superman';
+
+    var connection, peer;
+
+    // Connect to PeerJS, have server assign an ID instead of providing one
+    // Showing off some of the configs available with PeerJS :).
+    peer = new Peer(userName, {
+      // Set API key for cloud server (you don't need this if you're running your
+      // own.
+      key: 'x7fwx2kavpy6tj4i',
+
+      // Set highest debug level (log everything!).
+      debug: 3,
+
+      // Set a logging function:
+      logFunction: console.log
+    });
+    // var connectedPeers = {};
+
+    // Show this peer's ID.
+    peer.on('open', function (id) {
+      $('#pid').text(id);
+    });
+
+    // Await connections from others
+    peer.on('connection', connect);
+
+    // Log in case of any error
+    peer.on('error', function (err) {
+      console.log(err);
+    });
+
+    // Handle a connection object.
+    function connect(c) {
+      // Keep a global reference
+      connection = c;
+
+      // Add data listener
+      c.on('data', function (data) {
+        $('.messages').append('<div><span class="peer">' + c.peer + '</span>: ' + data + '</div>');
+      });
+
+      // Show alert when closed
+      c.on('close', function () {
+        alert(c.peer + ' has left the chat.');
+      });
+    }
+
+    $(document).ready(function () {
+      // Connect to a peer
+      $('.connect').click(function () {
+        var requestedPeer = $(this).text();
+
+        // Close the old connection
+        connection.close();
+
+        // Create a new connection
+        connection = peer.connect(requestedPeer, {
+          label: 'chat',
+          serialization: 'none',
+          metadata: {message: 'hi i want to chat with you!'}
+        });
+
+        connection.on('open', function () {
+          connect(connection);
+        });
+        connection.on('error', function (err) {
+          alert(err);
+        });
+      });
+
+
+      // Send a chat message to all active connections.
+      $('#send').submit(function (e) {
+        e.preventDefault();
+
+        // Get the message
+        var msg = $('#text').val();
+
+        // Send the message
+        connection.send(msg);
+
+        // Show in the UI with title 'You'
+        $('.message').append('<div><span class="you">You: </span>' + msg + '</div>');
+
+        // Reset and focus on the input box
+        $('#text').val('');
+        $('#text').focus();
+      });
+
+    });
+
+
+    // Make sure things clean up properly.
+    window.onunload = window.onbeforeunload = function (e) {
+      if (!!peer && !peer.destroyed) {
+        peer.destroy();
+      }
+    };
+
+  </script>
+</head>
+
+<body>
+
+  <!-- List od friends -->
+  <div id="friends">
+    <p id="pid"></p>
+    <ul>
+      <li class="connect">greenarrow</li>
+      <li class="connect">wonderwoman</li>
+      <li class="connect">batman</li>
+      <li class="connect">flash</li>
+    </ul>
+  </div>
+
+  <div id="chat">
+    <div id="messages"></div>
+    <div>
+      <input id="text" type="text" placeholder="Type your message here"/>
+      <button id="send">Send</button>
+    </div>
+  </div>
+</body>
+</html> 
